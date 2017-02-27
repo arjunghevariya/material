@@ -23,8 +23,8 @@
         yearBodyCtrl.calendarCtrl = calendarCtrl;
         yearBodyCtrl.yearCtrl = yearCtrl;
 
-        scope.$watch(function() { return yearBodyCtrl.offset; }, function(offset) {
-          if (angular.isNumber(offset)) {
+        scope.$watch(function() { return yearBodyCtrl.offset; }, function(offset, oldOffset) {
+          if (offset !== oldOffset) {
             yearBodyCtrl.generateContent();
           }
         });

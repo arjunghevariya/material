@@ -18,7 +18,7 @@
    * @name mdDatepicker
    * @module material.components.datepicker
    *
-   * @param {Date} ng-model The component's model. Expects either a JavaScript Date object or a value that can be parsed into one (e.g. a ISO 8601 string).
+   * @param {Date} ng-model The component's model. Expects a JavaScript Date object.
    * @param {Object=} ng-model-options Allows tuning of the way in which `ng-model` is being updated. Also allows
    * for a timezone to be specified. <a href="https://docs.angularjs.org/api/ng/directive/ngModelOptions#usage">Read more at the ngModelOptions docs.</a>
    * @param {expression=} ng-change Expression evaluated when the model value changes.
@@ -33,6 +33,10 @@
    * @param {String=} md-open-on-focus When present, the calendar will be opened when the input is focused.
    * @param {Boolean=} md-is-open Expression that can be used to open the datepicker's calendar on-demand.
    * @param {String=} md-current-view Default open view of the calendar pane. Can be either "month" or "year".
+   * @param {String=} md-mode Restricts the user to only selecting a value from a particular view. This option can
+   * be used if the user is only supposed to choose from a certain date type (e.g. only selecting the month).
+   * Can be either "month" or "day". **Note** that this will ovewrite the `md-current-view` value.
+   *
    * @param {String=} md-hide-icons Determines which datepicker icons should be hidden. Note that this may cause the
    * datepicker to not align properly with other components. **Use at your own risk.** Possible values are:
    * * `"all"` - Hides all icons.
@@ -78,19 +82,13 @@
                      'md-svg-src="' + $$mdSvgRegistry.mdCalendar + '"></md-icon>' +
           '</md-button>';
 
-        var triangleButton = '';
-
-        if (hiddenIcons !== 'all' && hiddenIcons !== 'triangle') {
-          triangleButton = '' +
-            '<md-button type="button" md-no-ink ' +
+        var triangleButton = (hiddenIcons === 'all' || hiddenIcons === 'triangle') ? '' :
+          '<md-button type="button" md-no-ink ' +
               'class="md-datepicker-triangle-button md-icon-button" ' +
               'ng-click="ctrl.openCalendarPane($event)" ' +
               'aria-label="{{::ctrl.locale.msgOpenCalendar}}">' +
             '<div class="md-datepicker-expand-triangle"></div>' +
           '</md-button>';
-
-          tElement.addClass(HAS_TRIANGLE_ICON_CLASS);
-        }
 
         return calendarButton +
         '<div class="md-datepicker-input-container" ng-class="{\'md-datepicker-focused\': ctrl.isFocused}">' +
@@ -99,6 +97,7 @@
             'class="md-datepicker-input" ' +
             'aria-haspopup="true" ' +
             'aria-expanded="{{ctrl.isCalendarOpen}}" ' +
+            'aria-owns="{{::ctrl.calendarPaneId}}"' +
             'ng-focus="ctrl.setFocused(true)" ' +
             'ng-blur="ctrl.setFocused(false)"> ' +
             triangleButton +
@@ -112,6 +111,7 @@
           '<div class="md-datepicker-calendar">' +
             '<md-calendar role="dialog" aria-label="{{::ctrl.locale.msgCalendar}}" ' +
                 'md-current-view="{{::ctrl.currentView}}"' +
+                'md-mode="{{::ctrl.mode}}"' +
                 'md-min-date="ctrl.minDate"' +
                 'md-max-date="ctrl.maxDate"' +
                 'md-date-filter="ctrl.dateFilter"' +
@@ -126,6 +126,7 @@
         maxDate: '=mdMaxDate',
         placeholder: '@mdPlaceholder',
         currentView: '@mdCurrentView',
+        mode: '@mdMode',
         dateFilter: '=mdDateFilter',
         isOpen: '=?mdIsOpen',
         debounceInterval: '=mdDebounceInterval',
@@ -161,7 +162,7 @@
           mdInputContainer.input = element;
           mdInputContainer.element
             .addClass(INPUT_CONTAINER_CLASS)
-            .toggleClass(HAS_CALENDAR_ICON_CLASS, attr.mdHideIcons !== 'calendar' && attr.mdHideIcons !== 'all');
+            .toggleClass(HAS_ICON_CLASS, attr.mdHideIcons !== 'calendar' && attr.mdHideIcons !== 'all');
 
           if (!mdInputContainer.label) {
             $mdAria.expect(element, 'aria-label', attr.mdPlaceholder);
@@ -202,10 +203,7 @@
   var INPUT_CONTAINER_CLASS = '_md-datepicker-floating-label';
 
   /** Class to be applied when the calendar icon is enabled. */
-  var HAS_CALENDAR_ICON_CLASS = '_md-datepicker-has-calendar-icon';
-
-  /** Class to be applied when the triangle icon is enabled. */
-  var HAS_TRIANGLE_ICON_CLASS = '_md-datepicker-has-triangle-icon';
+  var HAS_ICON_CLASS = '_md-datepicker-has-calendar-icon';
 
   /** Default time in ms to debounce input event by. */
   var DEFAULT_DEBOUNCE_INTERVAL = 500;
@@ -256,8 +254,12 @@
     /** @final */
     this.$$rAF = $$rAF;
 
-    /** @final */
-    this.$mdDateLocale = $mdDateLocale;
+    /**
+     * Holds locale-specific formatters, parsers, labels etc. Allows
+     * the user to override specific ones from the $mdDateLocale provider.
+     * @type {!Object}
+     */
+    this.locale = this.dateLocale ? angular.extend({}, $mdDateLocale, this.dateLocale) : $mdDateLocale;
 
     /**
      * The root document element. This is used for attaching a top-level click handler to
@@ -328,7 +330,7 @@
     this.calendarPaneOpenedFrom = null;
 
     /** @type {String} Unique id for the calendar pane. */
-    this.calendarPaneId = 'md-date-pane-' + $mdUtil.nextUid();
+    this.calendarPaneId = 'md-date-pane' + $mdUtil.nextUid();
 
     /** Pre-bound click handler is saved so that the event listener can be removed. */
     this.bodyClickHandler = angular.bind(this, this.handleBodyClick);
@@ -367,10 +369,12 @@
       $attrs.$set('tabindex', '-1');
     }
 
-    $attrs.$set('aria-owns', this.calendarPaneId);
-
     $mdTheming($element);
     $mdTheming(angular.element(this.calendarPane));
+
+    this.installPropertyInterceptors();
+    this.attachChangeListeners();
+    this.attachInteractionListeners();
 
     var self = this;
 
@@ -389,32 +393,7 @@
         }
       });
     }
-
-    // For Angular 1.4 and older, where there are no lifecycle hooks but bindings are pre-assigned,
-    // manually call the $onInit hook.
-    if (angular.version.major === 1 && angular.version.minor <= 4) {
-      this.$onInit();
-    }
-
   }
-
-  /**
-   * Angular Lifecycle hook for newer Angular versions.
-   * Bindings are not guaranteed to have been assigned in the controller, but they are in the $onInit hook.
-   */
-  DatePickerCtrl.prototype.$onInit = function() {
-
-    /**
-     * Holds locale-specific formatters, parsers, labels etc. Allows
-     * the user to override specific ones from the $mdDateLocale provider.
-     * @type {!Object}
-     */
-    this.locale = this.dateLocale ? angular.extend({}, this.$mdDateLocale, this.dateLocale) : this.$mdDateLocale;
-
-    this.installPropertyInterceptors();
-    this.attachChangeListeners();
-    this.attachInteractionListeners();
-  };
 
   /**
    * Sets up the controller's reference to ngModelController and
@@ -444,18 +423,9 @@
 
     // Responds to external changes to the model value.
     self.ngModelCtrl.$formatters.push(function(value) {
-      var parsedValue = angular.isDefined(value) ? Date.parse(value) : null;
-
-      // `parsedValue` is the time since epoch if valid or `NaN` if invalid.
-      if (!isNaN(parsedValue) && angular.isNumber(parsedValue)) {
-        value = new Date(parsedValue);
-      }
-
       if (value && !(value instanceof Date)) {
-        throw Error(
-          'The ng-model for md-datepicker must be a Date instance or a value ' +
-          'that can be parsed into a date. Currently the model is of type: ' + typeof value
-        );
+        throw Error('The ng-model for md-datepicker must be a Date instance. ' +
+            'Currently the model is a: ' + (typeof value));
       }
 
       self.onExternalChange(value);
@@ -915,6 +885,7 @@
     this.date = value;
     this.inputElement.value = this.locale.formatDate(value, timezone);
     this.mdInputContainer && this.mdInputContainer.setHasValue(!!value);
+    this.closeCalendarPane();
     this.resizeInputElement();
     this.updateErrorState();
   };

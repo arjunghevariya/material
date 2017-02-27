@@ -105,20 +105,15 @@ describe('md-datepicker', function() {
     expect(controller.inputElement.placeholder).toBe('Fancy new placeholder');
   });
 
-  it('should forward the aria-label to the generated input', function() {
-    createDatepickerInstance('<md-datepicker ng-model="myDate" aria-label="Enter a date"></md-datepicker>');
-    expect(controller.ngInputElement.attr('aria-label')).toBe('Enter a date');
-  });
-
-  it('should throw an error when the model cannot be parsed into a date', function() {
+  it('should throw an error when the model is not a date', function() {
     expect(function() {
-      pageScope.myDate = 'Frodo Baggins';
+      pageScope.myDate = '2015-01-01';
       pageScope.$apply();
-    }).toThrowError('The ng-model for md-datepicker must be a Date instance or a value ' +
-          'that can be parsed into a date. Currently the model is of type: string');
+    }).toThrowError('The ng-model for md-datepicker must be a Date instance. ' +
+        'Currently the model is a: string');
   });
 
-  it('should support null, undefined and values that can be parsed into a date', function() {
+  it('should support null and undefined values', function() {
     expect(function() {
       pageScope.myDate = null;
       pageScope.$apply();
@@ -126,8 +121,6 @@ describe('md-datepicker', function() {
       pageScope.myDate = undefined;
       pageScope.$apply();
 
-      pageScope.myDate = '2016-09-08';
-      pageScope.$apply();
     }).not.toThrow();
   });
 
@@ -831,7 +824,7 @@ describe('md-datepicker', function() {
     });
 
     it('should set the aria-owns value, corresponding to the id of the calendar pane', function() {
-      var ariaAttr = ngElement.attr('aria-owns');
+      var ariaAttr = controller.ngInputElement.attr('aria-owns');
 
       expect(ariaAttr).toBeTruthy();
       expect(controller.calendarPane.id).toBe(ariaAttr);

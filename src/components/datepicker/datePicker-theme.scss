@@ -33,6 +33,10 @@
 
   .md-datepicker-triangle-button {
     .md-datepicker-expand-triangle {
+      border-top-color: '{{foreground-3}}';
+    }
+
+    &:hover .md-datepicker-expand-triangle {
       border-top-color: '{{foreground-2}}';
     }
   }
