@@ -937,16 +937,6 @@ input {
       box-sizing: border-box;
     }
 
-    .layout-row {
-	    > .#{$flexName}-33   , > .#{$flexName}-33     {  flex: 1 1 33.33%;  max-width: 33.33%;  max-height: 100%; box-sizing: border-box; }
-	    > .#{$flexName}-66   , > .#{$flexName}-66     {  flex: 1 1 66.66%;  max-width: 66.66%;  max-height: 100%; box-sizing: border-box; }
-	  }
-
-	  .layout-column {
-	    > .#{$flexName}-33   , > .#{$flexName}-33     {  flex: 1 1 33.33%;  max-width: 100%;  max-height: 33.33%; box-sizing: border-box; }
-	    > .#{$flexName}-66   , > .#{$flexName}-66     {  flex: 1 1 66.66%;  max-width: 100%;  max-height: 66.66%; box-sizing: border-box; }
-	  }
-
     .layout#{$name}-row > .#{$flexName}-#{$i * 5} {
       flex: 1 1 100%;
       max-width: #{$value};
@@ -966,24 +956,33 @@ input {
       // Bug workaround for http://crbug.com/546034 - flex issues on Chrome 48
       @if $i == 0 {  min-height: 0;  }
     }
+  }
 
+  .layout-row {
+    > .#{$flexName}-33 { flex: 1 1 33.33%;  max-width: 33.33%;  max-height: 100%; box-sizing: border-box; }
+    > .#{$flexName}-66 { flex: 1 1 66.66%;  max-width: 66.66%;  max-height: 100%; box-sizing: border-box; }
+  }
+
+  .layout-column {
+    > .#{$flexName}-33 { flex: 1 1 33.33%;  max-width: 100%;  max-height: 33.33%; box-sizing: border-box; }
+    > .#{$flexName}-66 { flex: 1 1 66.66%;  max-width: 100%;  max-height: 66.66%; box-sizing: border-box; }
   }
 
   .layout#{$name}-row {
-    > .#{$flexName}-33   , > .#{$flexName}-33     {  flex: 1 1 100%;  max-width: 33.33%;  max-height: 100%; box-sizing: border-box; }
-    > .#{$flexName}-66   , > .#{$flexName}-66     {  flex: 1 1 100%;  max-width: 66.66%;  max-height: 100%; box-sizing: border-box; }
+    > .#{$flexName}-33 { flex: 1 1 100%;  max-width: 33.33%;  max-height: 100%; box-sizing: border-box; }
+    > .#{$flexName}-66 { flex: 1 1 100%;  max-width: 66.66%;  max-height: 100%; box-sizing: border-box; }
 
     // Bug workaround for http://crbug.com/546034 - flex issues on Chrome 48
-    > .flex                                       { min-width: 0;   }
+    > .flex { min-width: 0;  }
 
   }
 
   .layout#{$name}-column {
-    > .#{$flexName}-33   , > .#{$flexName}-33     {  flex: 1 1 100%;  max-width: 100%;  max-height: 33.33%; box-sizing: border-box; }
-    > .#{$flexName}-66   , > .#{$flexName}-66     {  flex: 1 1 100%;  max-width: 100%;  max-height: 66.66%; box-sizing: border-box; }
+    > .#{$flexName}-33 { flex: 1 1 100%;  max-width: 100%;  max-height: 33.33%; box-sizing: border-box; }
+    > .#{$flexName}-66 { flex: 1 1 100%;  max-width: 100%;  max-height: 66.66%; box-sizing: border-box; }
 
     // Bug workaround for http://crbug.com/546034 - flex issues on Chrome 48
-    > .flex                                       { min-height: 0;   }
+    > .flex { min-height: 0; }
   }
 
 }
@@ -1231,6 +1230,10 @@ input {
 
 ._md-panel-hidden {
   display: none;
+}
+
+._md-panel-offscreen {
+  left: -9999px;
 }
 
 ._md-panel-fullscreen {
@@ -7046,6 +7049,23 @@ md-toolbar {
 }
 
 
+.md-truncate {
+  overflow: hidden;
+  white-space: nowrap;
+
+  // Default overflow is ellipsis
+  text-overflow: ellipsis;
+
+  // Allow override to use clipping
+  &.md-clip {
+    text-overflow: clip;
+  }
+
+  // This is a flex-specific hack that forces the element to only take up available space.
+  &.flex {
+    width: 0;
+  }
+}
 $tooltip-fontsize-lg: 10px !default;
 $tooltip-fontsize-sm: 14px !default;
 $tooltip-height-lg: 22px !default;
@@ -7103,34 +7123,18 @@ $tooltip-max-width: 32px !default;
   }
   &.md-show {
     transition: $swift-ease-out;
+    transition-duration: 150ms;
     transform: scale(1);
     opacity: 0.9;
   }
   &.md-hide {
     transition: $swift-ease-in;
-    transition-duration: .1s;
+    transition-duration: 150ms;
     transform: scale(0);
     opacity: 0;
   }
 }
 
-.md-truncate {
-  overflow: hidden;
-  white-space: nowrap;
-
-  // Default overflow is ellipsis
-  text-overflow: ellipsis;
-
-  // Allow override to use clipping
-  &.md-clip {
-    text-overflow: clip;
-  }
-
-  // This is a flex-specific hack that forces the element to only take up available space.
-  &.flex {
-    width: 0;
-  }
-}
 $virtual-repeat-scrollbar-width: 16px !default;
 
 .md-virtual-repeat-container {

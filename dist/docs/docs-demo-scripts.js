@@ -135,20 +135,26 @@
     function loadAll() {
       var repos = [
         {
-          'name'      : 'Angular 1',
+          'name'      : 'AngularJS',
           'url'       : 'https://github.com/angular/angular.js',
           'watchers'  : '3,623',
           'forks'     : '16,175',
         },
         {
-          'name'      : 'Angular 2',
+          'name'      : 'Angular',
           'url'       : 'https://github.com/angular/angular',
           'watchers'  : '469',
           'forks'     : '760',
         },
         {
-          'name'      : 'Angular Material',
+          'name'      : 'AngularJS Material',
           'url'       : 'https://github.com/angular/material',
+          'watchers'  : '727',
+          'forks'     : '1,241',
+        },
+        {
+          'name'      : 'Angular Material',
+          'url'       : 'https://github.com/angular/material2',
           'watchers'  : '727',
           'forks'     : '1,241',
         },
@@ -358,6 +364,8 @@ angular.module('bottomSheetDemo1', ['ngMaterial'])
       controller: 'ListBottomSheetCtrl'
     }).then(function(clickedItem) {
       $scope.alert = clickedItem['name'] + ' clicked!';
+    }).catch(function(error) {
+      // User clicked outside or hit escape
     });
   };
 
@@ -374,6 +382,8 @@ angular.module('bottomSheetDemo1', ['ngMaterial'])
               .position('top right')
               .hideDelay(1500)
           );
+    }).catch(function(error) {
+      // User clicked outside or hit escape
     });
   };
 })
@@ -544,50 +554,6 @@ angular.module('checkboxDemo2', ['ngMaterial'])
         return list.indexOf(item) > -1;
       };
 });
-
-(function () {
-  'use strict';
-  angular
-      .module('chipsDemo', ['ngMaterial', 'ngMessages'])
-      .config(['$mdIconProvider', function($mdIconProvider) {
-        $mdIconProvider.icon('md-close', 'img/icons/ic_close_24px.svg', 24);
-      }])
-      .controller('BasicDemoCtrl', DemoCtrl);
-
-  function DemoCtrl ($timeout, $q) {
-    var self = this;
-
-    self.readonly = false;
-
-    // Lists of fruit names and Vegetable objects
-    self.fruitNames = ['Apple', 'Banana', 'Orange'];
-    self.roFruitNames = angular.copy(self.fruitNames);
-    self.editableFruitNames = angular.copy(self.fruitNames);
-
-    self.tags = [];
-    self.vegObjs = [
-      {
-        'name' : 'Broccoli',
-        'type' : 'Brassica'
-      },
-      {
-        'name' : 'Cabbage',
-        'type' : 'Brassica'
-      },
-      {
-        'name' : 'Carrot',
-        'type' : 'Umbelliferous'
-      }
-    ];
-
-    self.newVeg = function(chip) {
-      return {
-        name: chip,
-        type: 'unknown'
-      };
-    };
-  }
-})();
 
 (function () {
   'use strict';
@@ -821,6 +787,50 @@ angular.module('checkboxDemo2', ['ngMaterial'])
 
   function DemoCtrl ($timeout, $q) {
     this.chipText = 'Football';
+  }
+})();
+
+(function () {
+  'use strict';
+  angular
+      .module('chipsDemo', ['ngMaterial', 'ngMessages'])
+      .config(['$mdIconProvider', function($mdIconProvider) {
+        $mdIconProvider.icon('md-close', 'img/icons/ic_close_24px.svg', 24);
+      }])
+      .controller('BasicDemoCtrl', DemoCtrl);
+
+  function DemoCtrl ($timeout, $q) {
+    var self = this;
+
+    self.readonly = false;
+
+    // Lists of fruit names and Vegetable objects
+    self.fruitNames = ['Apple', 'Banana', 'Orange'];
+    self.roFruitNames = angular.copy(self.fruitNames);
+    self.editableFruitNames = angular.copy(self.fruitNames);
+
+    self.tags = [];
+    self.vegObjs = [
+      {
+        'name' : 'Broccoli',
+        'type' : 'Brassica'
+      },
+      {
+        'name' : 'Cabbage',
+        'type' : 'Brassica'
+      },
+      {
+        'name' : 'Carrot',
+        'type' : 'Umbelliferous'
+      }
+    ];
+
+    self.newVeg = function(chip) {
+      return {
+        name: chip,
+        type: 'unknown'
+      };
+    };
   }
 })();
 
@@ -1145,20 +1155,6 @@ angular.module('dialogDemo3', ['ngMaterial'])
   }
 });
 
-(function() {
-  'use strict';
-
-  angular.module('fabToolbarBasicUsageDemo', ['ngMaterial'])
-    .controller('AppCtrl', function($scope) {
-      $scope.isOpen = false;
-
-      $scope.demo = {
-        isOpen: false,
-        count: 0,
-        selectedDirection: 'left'
-      };
-    });
-})();
 angular.module('dividerDemo1', ['ngMaterial'])
   .controller('AppCtrl', function($scope) {
     var imagePath = 'img/list/60.jpeg';
@@ -1195,6 +1191,91 @@ angular.module('dividerDemo1', ['ngMaterial'])
     }];
   });
 
+(function() {
+  'use strict';
+
+  angular.module('fabSpeedDialDemoBasicUsage', ['ngMaterial'])
+    .controller('DemoCtrl', function() {
+      this.topDirections = ['left', 'up'];
+      this.bottomDirections = ['down', 'right'];
+
+      this.isOpen = false;
+
+      this.availableModes = ['md-fling', 'md-scale'];
+      this.selectedMode = 'md-fling';
+
+      this.availableDirections = ['up', 'down', 'left', 'right'];
+      this.selectedDirection = 'up';
+    });
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('fabSpeedDialDemoMoreOptions', ['ngMaterial'])
+    .controller('DemoCtrl', function($scope, $mdDialog, $timeout) {
+      var self = this;
+
+      self.hidden = false;
+      self.isOpen = false;
+      self.hover = false;
+
+      // On opening, add a delayed property which shows tooltips after the speed dial has opened
+      // so that they have the proper position; if closing, immediately hide the tooltips
+      $scope.$watch('demo.isOpen', function(isOpen) {
+        if (isOpen) {
+          $timeout(function() {
+            $scope.tooltipVisible = self.isOpen;
+          }, 600);
+        } else {
+          $scope.tooltipVisible = self.isOpen;
+        }
+      });
+
+      self.items = [
+        { name: "Twitter", icon: "img/icons/twitter.svg", direction: "bottom" },
+        { name: "Facebook", icon: "img/icons/facebook.svg", direction: "top" },
+        { name: "Google Hangout", icon: "img/icons/hangout.svg", direction: "bottom" }
+      ];
+
+      self.openDialog = function($event, item) {
+        // Show the dialog
+        $mdDialog.show({
+          clickOutsideToClose: true,
+          controller: function($mdDialog) {
+            // Save the clicked item
+            this.item = item;
+
+            // Setup some handlers
+            this.close = function() {
+              $mdDialog.cancel();
+            };
+            this.submit = function() {
+              $mdDialog.hide();
+            };
+          },
+          controllerAs: 'dialog',
+          templateUrl: 'dialog.html',
+          targetEvent: $event
+        });
+      };
+    });
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('fabToolbarBasicUsageDemo', ['ngMaterial'])
+    .controller('AppCtrl', function($scope) {
+      $scope.isOpen = false;
+
+      $scope.demo = {
+        isOpen: false,
+        count: 0,
+        selectedDirection: 'left'
+      };
+    });
+})();
 
 angular.module('gridListDemo1', ['ngMaterial'])
 .controller('AppCtrl', function($scope) {});
@@ -1288,77 +1369,6 @@ angular.module('gridListDemo1', ['ngMaterial'])
     }
   }
 });
-
-(function() {
-  'use strict';
-
-  angular.module('fabSpeedDialDemoBasicUsage', ['ngMaterial'])
-    .controller('DemoCtrl', function() {
-      this.topDirections = ['left', 'up'];
-      this.bottomDirections = ['down', 'right'];
-
-      this.isOpen = false;
-
-      this.availableModes = ['md-fling', 'md-scale'];
-      this.selectedMode = 'md-fling';
-
-      this.availableDirections = ['up', 'down', 'left', 'right'];
-      this.selectedDirection = 'up';
-    });
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('fabSpeedDialDemoMoreOptions', ['ngMaterial'])
-    .controller('DemoCtrl', function($scope, $mdDialog, $timeout) {
-      var self = this;
-
-      self.hidden = false;
-      self.isOpen = false;
-      self.hover = false;
-
-      // On opening, add a delayed property which shows tooltips after the speed dial has opened
-      // so that they have the proper position; if closing, immediately hide the tooltips
-      $scope.$watch('demo.isOpen', function(isOpen) {
-        if (isOpen) {
-          $timeout(function() {
-            $scope.tooltipVisible = self.isOpen;
-          }, 600);
-        } else {
-          $scope.tooltipVisible = self.isOpen;
-        }
-      });
-
-      self.items = [
-        { name: "Twitter", icon: "img/icons/twitter.svg", direction: "bottom" },
-        { name: "Facebook", icon: "img/icons/facebook.svg", direction: "top" },
-        { name: "Google Hangout", icon: "img/icons/hangout.svg", direction: "bottom" }
-      ];
-
-      self.openDialog = function($event, item) {
-        // Show the dialog
-        $mdDialog.show({
-          clickOutsideToClose: true,
-          controller: function($mdDialog) {
-            // Save the clicked item
-            this.item = item;
-
-            // Setup some handlers
-            this.close = function() {
-              $mdDialog.cancel();
-            };
-            this.submit = function() {
-              $mdDialog.hide();
-            };
-          },
-          controllerAs: 'dialog',
-          templateUrl: 'dialog.html',
-          targetEvent: $event
-        });
-      };
-    });
-})();
 
 
 angular
@@ -2279,6 +2289,32 @@ DialogCtrl.prototype.closeDialog = function() {
 
 })();
 
+angular
+  .module('progressCircularDemo1', ['ngMaterial'], function($mdThemingProvider) {
+    $mdThemingProvider.theme('docs-dark', 'default')
+      .primaryPalette('yellow')
+      .dark();
+  })
+  .controller('AppCtrl', ['$interval',
+    function($interval) {
+      var self = this;
+
+      self.activated = true;
+      self.determinateValue = 30;
+
+      // Iterate every 100ms, non-stop and increment
+      // the Determinate loader.
+      $interval(function() {
+
+        self.determinateValue += 1;
+        if (self.determinateValue > 100) {
+          self.determinateValue = 30;
+        }
+
+      }, 100);
+    }
+  ]);
+
 (function() {
   'use strict';
 
@@ -2385,32 +2421,6 @@ DialogCtrl.prototype.closeDialog = function() {
     };
   }
 })();
-
-angular
-  .module('progressCircularDemo1', ['ngMaterial'], function($mdThemingProvider) {
-    $mdThemingProvider.theme('docs-dark', 'default')
-      .primaryPalette('yellow')
-      .dark();
-  })
-  .controller('AppCtrl', ['$interval',
-    function($interval) {
-      var self = this;
-
-      self.activated = true;
-      self.determinateValue = 30;
-
-      // Iterate every 100ms, non-stop and increment
-      // the Determinate loader.
-      $interval(function() {
-
-        self.determinateValue += 1;
-        if (self.determinateValue > 100) {
-          self.determinateValue = 30;
-        }
-
-      }, 100);
-    }
-  ]);
 
 angular.module('progressLinearDemo1', ['ngMaterial'])
   .config(function($mdThemingProvider) {
@@ -3210,6 +3220,20 @@ function AppCtrl($scope) {
   'use strict';
 
     angular
+      .module('virtualRepeatHorizontalDemo', ['ngMaterial'])
+      .controller('AppCtrl', function() {
+        this.items = [];
+        for (var i = 0; i < 1000; i++) {
+          this.items.push(i);
+        }
+      });
+
+})();
+
+(function () {
+  'use strict';
+
+    angular
       .module('virtualRepeatInfiniteScrollDemo', ['ngMaterial'])
       .controller('AppCtrl', function($timeout) {
 
@@ -3286,20 +3310,6 @@ function AppCtrl($scope) {
           var scrollYear = Math.floor(topIndex / 13);
           this.selectedYear = scrollYear;
         }));
-      });
-
-})();
-
-(function () {
-  'use strict';
-
-    angular
-      .module('virtualRepeatHorizontalDemo', ['ngMaterial'])
-      .controller('AppCtrl', function() {
-        this.items = [];
-        for (var i = 0; i < 1000; i++) {
-          this.items.push(i);
-        }
       });
 
 })();
